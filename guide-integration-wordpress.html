@@ -1,0 +1,916 @@
+<title>Revelia Evolution — Guide de reconstruction WordPress / Kubio</title>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --surface: #ffffff;
+    --surface-alt: #f2ede3;
+    --text: #241b3f;
+    --text-soft: #564d74;
+    --border: #e7e0d4;
+    --accent: #201748;
+    --accent-2: #c98f1e;
+    --accent-2-soft: #fbeacb;
+    --code-bg: #f4f1ec;
+    --code-text: #241b3f;
+    --success: #3f8361;
+    --radius: 12px;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171225;
+      --surface: #1f1836;
+      --surface-alt: #241d3f;
+      --text: #f3efe6;
+      --text-soft: #b9aed0;
+      --border: #362a55;
+      --accent: #e3a72e;
+      --accent-2: #f5f2ea;
+      --accent-2-soft: #3a2f57;
+      --code-bg: #241d3f;
+      --code-text: #f3efe6;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171225; --surface: #1f1836; --surface-alt: #241d3f; --text: #f3efe6;
+    --text-soft: #b9aed0; --border: #362a55; --accent: #e3a72e; --accent-2: #f5f2ea;
+    --accent-2-soft: #3a2f57; --code-bg: #241d3f; --code-text: #f3efe6;
+  }
+  :root[data-theme="light"] {
+    --bg: #faf8f4; --surface: #ffffff; --surface-alt: #f2ede3; --text: #241b3f;
+    --text-soft: #564d74; --border: #e7e0d4; --accent: #201748; --accent-2: #c98f1e;
+    --accent-2-soft: #fbeacb; --code-bg: #f4f1ec; --code-text: #241b3f;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; font-size: 16px;
+  }
+  h1, h2, h3, h4 { font-family: var(--serif); color: var(--text); line-height: 1.2; text-wrap: balance; }
+  a { color: var(--accent-2); }
+  code, .mono { font-family: var(--mono); font-size: 0.88em; }
+
+  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 0; max-width: 1240px; margin: 0 auto; min-height: 100vh; }
+  .sidebar {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+    padding: 28px 20px; border-right: 1px solid var(--border);
+  }
+  .sidebar .brand { font-family: var(--serif); font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; }
+  .sidebar .brand-sub { font-size: 0.75rem; color: var(--text-soft); margin-bottom: 24px; }
+  .sidebar nav h5 {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-soft);
+    margin: 20px 0 8px; font-family: var(--sans); font-weight: 700;
+  }
+  .sidebar nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .sidebar nav a {
+    display: block; padding: 6px 10px; border-radius: 8px; color: var(--text-soft);
+    text-decoration: none; font-size: 0.88rem;
+  }
+  .sidebar nav a:hover { background: var(--surface-alt); color: var(--text); }
+
+  main { padding: 40px 48px 120px; max-width: 900px; }
+  .lede { font-size: 1.08rem; color: var(--text-soft); max-width: 62ch; }
+  section.block { margin-bottom: 56px; scroll-margin-top: 20px; }
+  section.block > h2 { font-size: 1.6rem; margin-bottom: 6px; }
+  .block-intro { color: var(--text-soft); max-width: 65ch; margin-bottom: 20px; }
+
+  .callout {
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; margin: 18px 0; font-size: 0.94rem;
+  }
+  .callout.warn { border-color: var(--accent-2); }
+  .callout strong { color: var(--accent); }
+
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 18px 0; }
+  .swatch { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  .swatch-color { height: 56px; }
+  .swatch-label { padding: 8px 10px; font-size: 0.82rem; }
+  .swatch-label .name { display: block; font-weight: 600; }
+  .swatch-label .hex { display: block; color: var(--text-soft); font-family: var(--mono); font-size: 0.8rem; }
+
+  .type-sample { border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin: 10px 0; background: var(--surface); }
+  .type-sample .meta { font-size: 0.8rem; color: var(--text-soft); margin-bottom: 6px; font-family: var(--mono); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: var(--sans); font-weight: 700; color: var(--text-soft); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .table-wrap { overflow-x: auto; }
+
+  pre {
+    background: var(--code-bg); color: var(--code-text); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px; overflow-x: auto; font-size: 0.86rem; margin: 10px 0;
+  }
+  .copy-block { position: relative; }
+  .copy-block .tag {
+    position: absolute; top: -10px; left: 12px; background: var(--accent-2); color: var(--surface);
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 2px 8px; border-radius: 999px;
+  }
+
+  details.page {
+    border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; background: var(--surface);
+    scroll-margin-top: 20px;
+  }
+  details.page > summary {
+    cursor: pointer; padding: 16px 20px; font-family: var(--serif); font-size: 1.15rem; font-weight: 700;
+    list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  details.page > summary::-webkit-details-marker { display: none; }
+  details.page > summary .slug { font-family: var(--mono); font-size: 0.78rem; color: var(--text-soft); font-weight: 400; }
+  details.page > summary::after {
+    content: "+"; font-family: var(--sans); font-size: 1.3rem; color: var(--accent-2); flex-shrink: 0;
+  }
+  details.page[open] > summary::after { content: "–"; }
+  .page-body { padding: 0 20px 24px; }
+  .page-body h4 {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-2);
+    margin: 22px 0 8px; font-family: var(--sans); font-weight: 700;
+  }
+  .page-body h4:first-child { margin-top: 0; }
+  .section-note { font-size: 0.86rem; color: var(--text-soft); margin: 0 0 8px; }
+
+  .btn-sample { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 999px; font-weight: 700; font-size: 0.88rem; margin: 4px 6px 4px 0; }
+  .btn-sample.primary { background: var(--accent-2); color: var(--accent); }
+  .btn-sample.outline { border: 2px solid var(--accent); color: var(--accent); }
+
+  .chip { display: inline-block; background: var(--accent-2-soft); color: var(--text); border-radius: 999px; padding: 2px 10px; font-size: 0.78rem; margin: 2px 4px 2px 0; }
+
+  hr.sep { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    main { padding: 32px 20px 80px; }
+  }
+</style>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Revelia Evolution</div>
+    <div class="brand-sub">Guide de reconstruction WordPress / Kubio</div>
+    <nav>
+      <h5>Méthode retenue</h5>
+      <ul>
+        <li><a href="#methode-html">Intégration HTML (bloc Kubio)</a></li>
+      </ul>
+      <h5>Alternative : Kubio natif</h5>
+      <ul>
+        <li><a href="#intro">Vue d'ensemble (gratuit)</a></li>
+        <li><a href="#eyebrow-natif">Produire un Eyebrow</a></li>
+        <li><a href="#footer-natif">Le pied de page</a></li>
+      </ul>
+      <h5>Kit de marque</h5>
+      <ul>
+        <li><a href="#couleurs">Couleurs</a></li>
+        <li><a href="#typo">Typographies</a></li>
+        <li><a href="#logo">Logo &amp; images</a></li>
+        <li><a href="#composants">Style des composants</a></li>
+      </ul>
+      <h5>Structure du site</h5>
+      <ul>
+        <li><a href="#plan">Plan du site</a></li>
+        <li><a href="#partagé">Header &amp; footer</a></li>
+      </ul>
+      <h5>Pages (contenu à copier)</h5>
+      <ul>
+        <li><a href="#page-accueil">Accueil</a></li>
+        <li><a href="#page-formations">Nos formations</a></li>
+        <li><a href="#page-bilans">Bilans de compétences</a></li>
+        <li><a href="#page-financement">Coût &amp; financement</a></li>
+        <li><a href="#page-apropos">À propos</a></li>
+        <li><a href="#page-faq">FAQ</a></li>
+        <li><a href="#page-contact">Contact</a></li>
+        <li><a href="#page-mentions">Mentions légales</a></li>
+      </ul>
+      <h5>Points d'attention</h5>
+      <ul>
+        <li><a href="#attention">À vérifier avant mise en ligne</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+    <h1>Guide de reconstruction dans WordPress / Kubio</h1>
+    <p class="lede">Ce document réunit tout ce qu'il faut pour recréer le site dans votre WordPress actuel : couleurs exactes, polices, textes prêts à copier-coller, et structure section par section de chacune des 8 pages.</p>
+
+    <section class="block" id="methode-html">
+      <h2>✅ Méthode retenue : intégration HTML directe</h2>
+      <p class="block-intro">C'est la solution choisie : le code de chaque page est intégré tel quel dans un bloc <strong>« HTML personnalisé »</strong> de Kubio. Rendu identique au pixel près, aucune reconstruction manuelle nécessaire. Seul inconvénient : modifier un texte demandera de retoucher le code à cet endroit (pas d'édition 100&nbsp;% visuelle).</p>
+
+      <h4 style="margin-top:0">1 — Téléverser les fichiers techniques (une seule fois)</h4>
+      <p class="section-note">Par FTP (ou le gestionnaire de fichiers de l'hébergement), déposez le dossier <code>assets/</code> tel quel <strong>à la racine du site</strong> (au même niveau que les dossiers <code>wp-content</code>, <code>wp-admin</code>...), pour qu'il soit joignable à l'adresse <code>votre-site.fr/assets/...</code>. Il contient :</p>
+      <ul>
+        <li><code>assets/css/style.css</code> — toutes les couleurs, styles et mises en page</li>
+        <li><code>assets/js/main.js</code> — menu mobile, accordéon FAQ, formulaire, alignement du logo</li>
+        <li><code>assets/fonts/Lovelo-Black.otf</code> — police du logo</li>
+        <li><code>assets/img/logo/</code> — les deux logos</li>
+        <li><code>assets/docs/</code> — le catalogue PDF des formations</li>
+      </ul>
+
+      <h4>2 — Créer les 8 pages dans WordPress</h4>
+      <p class="section-note">Créez une page WordPress vide par ligne ci-dessous, avec <strong>exactement</strong> cette adresse (slug) — les liens du menu et du pied de page en dépendent.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Page WordPress</th><th>Adresse (slug)</th><th>Fichier à coller</th></tr></thead>
+          <tbody>
+            <tr><td>Accueil</td><td class="mono">/</td><td class="mono">accueil.html</td></tr>
+            <tr><td>Nos formations</td><td class="mono">/nos-formations/</td><td class="mono">nos-formations.html</td></tr>
+            <tr><td>Bilans de compétences</td><td class="mono">/nos-bilans-de-competences/</td><td class="mono">nos-bilans-de-competences.html</td></tr>
+            <tr><td>Coût &amp; financement</td><td class="mono">/cout-et-financement/</td><td class="mono">cout-et-financement.html</td></tr>
+            <tr><td>À propos</td><td class="mono">/a-propos/</td><td class="mono">a-propos.html</td></tr>
+            <tr><td>FAQ</td><td class="mono">/faq/</td><td class="mono">faq.html</td></tr>
+            <tr><td>Contact</td><td class="mono">/contact/</td><td class="mono">contact.html</td></tr>
+            <tr><td>Mentions légales</td><td class="mono">/mentions-legales/</td><td class="mono">mentions-legales.html</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>3 — Coller le code dans chaque page</h4>
+      <p class="section-note">Dans l'éditeur Kubio de la page, ajoutez un bloc <strong>« HTML personnalisé »</strong> (parfois appelé « Custom HTML »), collez tout le contenu du fichier correspondant, et publiez. Chaque fichier contient déjà l'en-tête, le contenu et le pied de page — pas besoin d'ajouter autre chose sur la page.</p>
+      <div class="callout warn">
+        <strong>Ces 8 fichiers sont déjà prêts</strong> — tous les chemins ont été adaptés pour WordPress (chemins d'images/CSS en <code>/assets/...</code>, liens entre pages en <code>/nos-formations/</code>, etc. au lieu de <code>nos-formations.html</code>). Il n'y a rien à modifier dedans, juste à coller.
+      </div>
+
+      <h4>4 — Réglages spécifiques restants</h4>
+      <ul>
+        <li><strong>Formulaire de contact</strong> — le fichier <code>contact.html</code> contient une clé provisoire <code>VOTRE_CLE_WEB3FORMS_ICI</code>. Récupérez une vraie clé gratuite sur <a href="https://web3forms.com" target="_blank" rel="noopener">web3forms.com</a> (juste une adresse email à renseigner, aucune création de compte) et remplacez-la dans le fichier avant de le coller.</li>
+        <li><strong>Permaliens</strong> — vérifiez que les permaliens WordPress sont réglés sur "Titre de la publication" (Réglages → Permaliens), sinon les adresses en <code>/nos-formations/</code> ne fonctionneront pas.</li>
+        <li>Les autres points (logos partenaires, mentions légales à compléter...) sont listés dans <a href="#attention">À vérifier avant mise en ligne</a>.</li>
+      </ul>
+    </section>
+
+    <section class="block" id="intro">
+      <h2>Alternative : reconstruction native avec Kubio (édition 100&nbsp;% visuelle)</h2>
+      <p class="block-intro">Non retenue pour la mise en ligne initiale (plus longue à mettre en place), mais gardée ici en détail si vous préférez tout piloter depuis l'éditeur visuel, sans jamais toucher au code — ou si un futur changement de contenu est plus confortable à faire ainsi.</p>
+
+      <div class="callout warn">
+        <strong>Version gratuite de Kubio</strong> — ce pas-à-pas part du principe que vous utilisez Kubio gratuit (celui installable directement depuis WordPress.org, sans licence). Le constructeur de pages visuel, les styles globaux (couleurs/polices) et les blocs de base (Ligne, Colonne, Titre, Texte, Bouton, Image) sont disponibles dans cette version. Deux points sont propres aux limites du gratuit et traités à part ci-dessous : le <a href="#footer-natif">pied de page</a> et l'<a href="#eyebrow-natif">Eyebrow</a>. Si votre interface Kubio diffère de ce qui est décrit (les plugins évoluent), cherchez l'équivalent le plus proche — les principes restent les mêmes.
+      </div>
+
+      <h4 style="margin-top:24px">Méthode générale, page par page</h4>
+      <p class="section-note">Pour chaque page, ouvrez l'éditeur Kubio et ajoutez les sections dans l'ordre du repère <span class="chip">Structure</span> de la page correspondante (plus bas dans ce guide), en copiant les textes du repère <span class="chip">Copier</span> dans les blocs. Réglez les couleurs et polices une seule fois dans les styles globaux de Kubio (voir <a href="#couleurs">Couleurs</a> et <a href="#typo">Typographies</a>) : tout le reste suit automatiquement.</p>
+
+      <h4>Traduire une fiche "Structure" en blocs Kubio</h4>
+      <p class="section-note">Le vocabulaire du guide correspond directement à des blocs Kubio :</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dans le guide</th><th>Dans Kubio</th></tr></thead>
+          <tbody>
+            <tr><td>"Section" (avec son fond blanc ou beige)</td><td>Bloc <strong>Section</strong> (ou Ligne pleine largeur) → onglet Style → Arrière-plan : blanc ou <code>#f2ede3</code> en alternance d'une section à l'autre</td></tr>
+            <tr><td>"Titre de section centré"</td><td>Bloc <strong>Titre</strong> (H2), alignement centré, police Lora — voir le rendu de l'Eyebrow juste au-dessus, ci-dessous</td></tr>
+            <tr><td>"N cartes côte à côte"</td><td>Une <strong>Ligne</strong> à N colonnes ; chaque colonne = une <strong>Colonne</strong> stylée en carte (voir "Cartes" ci-dessous) contenant Titre + Texte + Bouton</td></tr>
+            <tr><td>"Bouton 1 / Bouton 2"</td><td>Bloc <strong>Bouton</strong>, un par bouton, lien vers la page cible indiquée après la flèche (→)</td></tr>
+            <tr><td>"Encart bleu marine avec citation"</td><td>Colonne avec fond <code>#201748</code>, texte blanc, contenant un bloc Texte (citation) + Texte (signature)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Boutons</h4>
+      <p class="section-note">Sur le bloc Bouton, dans l'onglet Style :</p>
+      <ul>
+        <li><strong>Arrondi</strong> : maximal (forme pilule, ~999px ou "complet" selon le curseur proposé)</li>
+        <li><strong>Primaire</strong> : fond <code>#e3a72e</code>, texte <code>#201748</code>, gras</li>
+        <li><strong>Secondaire (contour)</strong> : fond transparent, bordure 2px <code>#201748</code>, texte <code>#201748</code></li>
+        <li>Padding : environ 14px haut/bas, 28px gauche/droite</li>
+      </ul>
+
+      <h4>Cartes (offres, modules, témoignages, valeurs)</h4>
+      <p class="section-note">Sur la Colonne qui sert de carte, dans l'onglet Style :</p>
+      <ul>
+        <li>Fond : blanc</li>
+        <li>Coins arrondis : 18px</li>
+        <li>Bordure : 1px, couleur <code>#e7e0d4</code></li>
+        <li>Ombre : légère, discrète (si Kubio propose un préréglage "soft"/"subtle", c'est celui-là ; sinon une ombre portée à faible opacité, décalée vers le bas)</li>
+        <li>Padding intérieur : ~28px</li>
+      </ul>
+
+      <h4 id="eyebrow-natif">Produire un "Eyebrow"</h4>
+      <p class="section-note">L'Eyebrow, c'est ce petit texte en majuscules au-dessus de chaque titre de section (ex. "Nos accompagnements", "Témoignages"). Ce n'est pas un bloc dédié dans Kubio — on le fabrique avec un bloc Texte stylé :</p>
+      <ol>
+        <li>Ajoutez un bloc <strong>Texte / Paragraphe</strong> juste au-dessus du bloc Titre</li>
+        <li>Tapez le texte <strong>directement en majuscules</strong> (ex. "NOS ACCOMPAGNEMENTS") — c'est plus fiable que de compter sur une option "Majuscules" qui n'est pas toujours disponible en gratuit</li>
+        <li>Dans l'onglet Style du bloc, réglez :
+          <ul>
+            <li>Taille de police : <strong>13px</strong> (0,78rem)</li>
+            <li>Graisse : <strong>Gras (700)</strong></li>
+            <li>Couleur : <code>#c98f1e</code></li>
+            <li>Espacement des lettres (letter-spacing), si l'option existe : <strong>~1,8px</strong></li>
+          </ul>
+        </li>
+        <li><em>Détail optionnel</em> (sautez-le si ça complique l'édition) : dans l'original, un petit trait doré de 22px de large et 2px de haut précède le texte, avec 8px d'espace. Reproductible avec un bloc Séparateur/Ligne très fin réglé en <code>#e3a72e</code>, placé juste avant le texte dans une mini-ligne horizontale.</li>
+      </ol>
+
+      <h4 id="footer-natif">Le pied de page (solution compatible gratuit)</h4>
+      <p class="section-note">Kubio propose parfois un éditeur de modèle de pied de page global, mais cette fonctionnalité n'est pas garantie dans toutes les versions gratuites. Plutôt que de dépendre de ça, la solution la plus fiable — qui marche <strong>quelle que soit votre version</strong> — est d'utiliser le même principe que la méthode HTML directe, mais uniquement pour le pied de page : un bloc <strong>« HTML personnalisé »</strong> (bloc natif de l'éditeur WordPress, présent partout, y compris en Kubio gratuit), collé <strong>en bas de chacune des 8 pages</strong>.</p>
+      <div class="callout">
+        <strong>Avant d'utiliser cette solution</strong> — vérifiez d'abord si votre Kubio a un item de menu du type "Modèles" / "En-tête et pied de page" / "Structures globales" (souvent dans le menu Kubio de la barre latérale WordPress, ou dans Apparence → Éditeur si votre thème est compatible "Édition complète du site"). Si oui et que vous pouvez y créer un pied de page global, c'est plus confortable (un seul endroit à modifier). Si vous ne trouvez rien de tel ou que c'est verrouillé "Pro", utilisez le bloc HTML ci-dessous.
+      </div>
+      <p class="section-note">Code prêt à coller (identique sur les 8 pages, il n'y a rien à adapter) :</p>
+      <div class="copy-block"><span class="tag">Copier — pied de page autonome</span><pre>&lt;footer style="background:#201748;color:rgba(255,255,255,0.8);padding:64px 24px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  &lt;div style="max-width:1180px;margin:0 auto">
+    &lt;div style="display:grid;grid-template-columns:1.4fr 0.8fr 0.8fr 1fr;gap:40px;margin-bottom:48px">
+      &lt;div>
+        &lt;a href="/" style="display:inline-block;margin-bottom:14px">
+          &lt;img src="/assets/img/logo/revelia-evolution-logo-fond-fonce.png" alt="Revelia Evolution" style="height:40px;display:block">
+        &lt;/a>
+        &lt;p style="color:rgba(255,255,255,0.65);font-size:14.7px;max-width:32ch;margin:0">Faire évoluer les parcours, faire évoluer les organisations. Bilans de compétences et formations en Alsace.&lt;/p>
+      &lt;/div>
+      &lt;div>
+        &lt;h4 style="color:#fff;font-size:13.6px;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 18px">Navigation&lt;/h4>
+        &lt;ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px">
+          &lt;li>&lt;a href="/" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">Accueil&lt;/a>&lt;/li>
+          &lt;li>&lt;a href="/a-propos/" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">À propos&lt;/a>&lt;/li>
+          &lt;li>&lt;a href="/faq/" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">FAQ&lt;/a>&lt;/li>
+          &lt;li>&lt;a href="/contact/" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">Contact&lt;/a>&lt;/li>
+        &lt;/ul>
+      &lt;/div>
+      &lt;div>
+        &lt;h4 style="color:#fff;font-size:13.6px;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 18px">Offres&lt;/h4>
+        &lt;ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px">
+          &lt;li>&lt;a href="/nos-bilans-de-competences/" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">Bilans de compétences&lt;/a>&lt;/li>
+          &lt;li>&lt;a href="/cout-et-financement/" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">Coût &amp;amp; financement&lt;/a>&lt;/li>
+          &lt;li>&lt;a href="/nos-formations/" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">Formations entreprises&lt;/a>&lt;/li>
+        &lt;/ul>
+      &lt;/div>
+      &lt;div>
+        &lt;h4 style="color:#fff;font-size:13.6px;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 18px">Contact&lt;/h4>
+        &lt;ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px">
+          &lt;li>&lt;a href="tel:0610284526" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">06 10 28 45 26&lt;/a>&lt;/li>
+          &lt;li>&lt;a href="mailto:contact@revelia-evolution.fr" style="color:rgba(255,255,255,0.7);font-size:14.7px;text-decoration:none">contact@revelia-evolution.fr&lt;/a>&lt;/li>
+          &lt;li style="color:rgba(255,255,255,0.7);font-size:14.7px">Sélestat – Strasbourg – Colmar&lt;/li>
+        &lt;/ul>
+      &lt;/div>
+    &lt;/div>
+    &lt;div style="border-top:1px solid rgba(255,255,255,0.12);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13.1px;color:rgba(255,255,255,0.55)">
+      &lt;span>© 2026 Revelia Evolution. Tous droits réservés.&lt;/span>
+      &lt;a href="/mentions-legales/" style="color:rgba(255,255,255,0.55);text-decoration:none">Mentions légales&lt;/a>
+    &lt;/div>
+  &lt;/div>
+&lt;/footer></pre></div>
+      <p class="section-note">Ce code est autonome (styles écrits directement dans le HTML) : il s'affiche correctement même si le reste de la page est construit en blocs Kubio natifs, sans dépendre de <code>style.css</code>. Le logo utilise l'image déjà prévue pour les fonds foncés (<code>assets/img/logo/revelia-evolution-logo-fond-fonce.png</code>, voir <a href="#logo">Logo &amp; images</a>) plutôt que le texte animé du site, pour rester simple et fiable.</p>
+
+      <div class="callout">
+        <strong>Un·e développeur·se</strong> — ce guide sert de spécification : tokens de couleur, polices avec liens Google Fonts, contenu exact, et structure de chaque page. Rien n'est laissé à l'interprétation.
+      </div>
+    </section>
+
+    <section class="block" id="couleurs">
+      <h2>Couleurs</h2>
+      <p class="block-intro">À définir une fois dans les réglages globaux de couleur de Kubio (ou du thème), puis à réutiliser partout — ne pas ressaisir les couleurs section par section.</p>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#201748"></div><div class="swatch-label"><span class="name">Bleu marine (primaire)</span><span class="hex">#201748</span></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#382a7a"></div><div class="swatch-label"><span class="name">Bleu marine clair</span><span class="hex">#382a7a</span></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#e3a72e"></div><div class="swatch-label"><span class="name">Or (boutons)</span><span class="hex">#e3a72e</span></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#c98f1e"></div><div class="swatch-label"><span class="name">Or foncé (texte/liens)</span><span class="hex">#c98f1e</span></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#faf8f4; border-bottom:1px solid #ddd"></div><div class="swatch-label"><span class="name">Fond principal</span><span class="hex">#faf8f4</span></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#f2ede3"></div><div class="swatch-label"><span class="name">Fond alterné</span><span class="hex">#f2ede3</span></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#241b3f"></div><div class="swatch-label"><span class="name">Texte principal</span><span class="hex">#241b3f</span></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#564d74"></div><div class="swatch-label"><span class="name">Texte secondaire</span><span class="hex">#564d74</span></div></div>
+      </div>
+      <p class="section-note">Règle d'usage : fonds de section alternés entre blanc et gris-beige clair (#f2ede3) pour rythmer la page. Le bleu marine sert de fond plein uniquement pour les bandeaux de mise en avant (citations, appel à l'action final).</p>
+    </section>
+
+    <section class="block" id="typo">
+      <h2>Typographies</h2>
+      <p class="block-intro">Toutes gratuites, à activer via Google Fonts (Kubio permet d'ajouter des polices Google Fonts directement dans ses réglages de typographie).</p>
+      <div class="type-sample">
+        <div class="meta">Titres (H1, H2, H3) — Lora, graisses 500/600/700</div>
+        <div style="font-family: Georgia, serif; font-size: 1.4rem; font-weight: 700;">Faire évoluer les parcours, faire évoluer les organisations</div>
+      </div>
+      <div class="type-sample">
+        <div class="meta">Texte courant — Inter, graisses 400/500/600/700</div>
+        <div style="font-family: -apple-system, sans-serif;">Revelia Evolution accompagne les personnes en quête de sens grâce au bilan de compétences.</div>
+      </div>
+      <div class="type-sample">
+        <div class="meta">Logo — "Revelia" en League Spartan (700), "EVOLUTION" en Lovelo Black (espacé)</div>
+      </div>
+      <p class="section-note">Lien Google Fonts pour Lora, Inter et League Spartan :</p>
+      <div class="copy-block"><span class="tag">Copier</span>
+        <pre>https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=League+Spartan:wght@600;700&amp;display=swap</pre>
+      </div>
+      <div class="callout warn">
+        <strong>Lovelo n'est pas sur Google Fonts</strong> — c'est une police téléchargée chez Fontfabric (licence gratuite vérifiée : usage commercial et web autorisés). Il faut téléverser le fichier <code>Lovelo-Black.otf</code> dans WordPress (médiathèque ou dossier du thème) et l'ajouter en police personnalisée — Kubio permet d'importer une police locale dans ses réglages de typographie. Le fichier se trouve dans <code>assets/fonts/Lovelo-Black.otf</code>.
+      </div>
+    </section>
+
+    <section class="block" id="logo">
+      <h2>Logo &amp; images</h2>
+      <ul>
+        <li><code>assets/img/logo/revelia-evolution-logo-fond-clair.png</code> — pour fonds clairs (fond transparent)</li>
+        <li><code>assets/img/logo/revelia-evolution-logo-fond-fonce.png</code> — pour fonds foncés (fond transparent)</li>
+        <li><code>assets/docs/revelia-evolution-catalogue-formations-vhss.pdf</code> — catalogue des formations, à re-téléverser dans la médiathèque WordPress et à relier au bouton de téléchargement (page Formations)</li>
+      </ul>
+      <div class="callout warn">
+        <strong>À vérifier</strong> — les deux logos partenaires (Mission locale Sélestat, Femmes Strasbourg) pointent actuellement vers l'ancien site (<code>revelia-evolution.fr/wp-content/uploads/...</code>). Si l'ancien WordPress est remplacé, re-téléversez ces images dans la nouvelle médiathèque et mettez à jour les liens.
+      </div>
+    </section>
+
+    <section class="block" id="composants">
+      <h2>Style des composants</h2>
+      <p class="block-intro">Aperçu du style des éléments récurrents, pour régler les styles globaux de Kubio en conséquence.</p>
+      <p>
+        <span class="btn-sample primary">Bouton principal</span>
+        <span class="btn-sample outline">Bouton secondaire</span>
+      </p>
+      <ul>
+        <li><strong>Boutons</strong> : forme pilule (arrondi complet), gras. Primaire = fond or, texte bleu marine. Secondaire = contour bleu marine, fond transparent.</li>
+        <li><strong>Cartes</strong> (offres, modules, témoignages) : fond blanc, coins arrondis (~18px), ombre légère, bordure fine beige.</li>
+        <li><strong>FAQ</strong> : accordéon — une question ouverte à la fois, icône "+" qui tourne en "×" à l'ouverture.</li>
+        <li><strong>En-tête</strong> : fixe en haut de page (reste visible au défilement), fond légèrement transparent/flouté.</li>
+      </ul>
+    </section>
+
+    <hr class="sep">
+
+    <section class="block" id="plan">
+      <h2>Plan du site</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Libellé menu</th><th>Adresse (slug)</th><th>Titre d'onglet</th></tr></thead>
+          <tbody>
+            <tr><td>Accueil</td><td class="mono">/</td><td>Revelia Evolution — Bilans de compétences &amp; formations VHSS</td></tr>
+            <tr><td>Nos formations</td><td class="mono">/nos-formations</td><td>Nos formations VHSS, médiation &amp; régulation des conflits</td></tr>
+            <tr><td>Bilans de compétences</td><td class="mono">/nos-bilans-de-competences</td><td>Bilan de compétences — Formules Essor, Élan &amp; Éclosion</td></tr>
+            <tr><td><em>(lien secondaire, pas dans le menu)</em></td><td class="mono">/cout-et-financement</td><td>Coût et financement du bilan de compétences (CPF)</td></tr>
+            <tr><td>À propos</td><td class="mono">/a-propos</td><td>À propos — Revelia Evolution</td></tr>
+            <tr><td>FAQ</td><td class="mono">/faq</td><td>FAQ — Bilan de compétences &amp; CPF</td></tr>
+            <tr><td>Nous contacter (bouton)</td><td class="mono">/contact</td><td>Contact — Revelia Evolution</td></tr>
+            <tr><td><em>(lien pied de page uniquement)</em></td><td class="mono">/mentions-legales</td><td>Mentions légales</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="partagé">
+      <h2>Header &amp; footer (communs à toutes les pages)</h2>
+      <h4>En-tête</h4>
+      <p class="section-note">Logo à gauche · menu : Accueil / Nos formations / Bilans de compétences / À propos / FAQ · à droite : numéro de téléphone cliquable et bouton "Nous contacter".</p>
+      <div class="copy-block"><span class="tag">Copier — téléphone</span><pre>06 10 28 45 26</pre></div>
+
+      <h4>Pied de page</h4>
+      <p class="section-note">4 colonnes : bloc marque + description, Navigation, Offres, Contact — puis une ligne de copyright et le lien mentions légales.</p>
+      <div class="copy-block"><span class="tag">Copier — description marque</span><pre>Faire évoluer les parcours, faire évoluer les organisations. Bilans de compétences et formations en Alsace.</pre></div>
+      <table>
+        <thead><tr><th>Colonne</th><th>Liens</th></tr></thead>
+        <tbody>
+          <tr><td>Navigation</td><td>Accueil · À propos · FAQ · Contact</td></tr>
+          <tr><td>Offres</td><td>Bilans de compétences · Coût &amp; financement · Formations entreprises</td></tr>
+          <tr><td>Contact</td><td>06 10 28 45 26 · contact@revelia-evolution.fr · Sélestat – Strasbourg – Colmar</td></tr>
+        </tbody>
+      </table>
+      <div class="copy-block"><span class="tag">Copier — copyright</span><pre>© 2026 Revelia Evolution. Tous droits réservés.</pre></div>
+    </section>
+
+    <hr class="sep">
+
+    <h2 style="margin-bottom: 4px;">Contenu détaillé des 8 pages</h2>
+    <p class="block-intro">Cliquez sur une page pour dérouler sa structure et ses textes.</p>
+
+    <details class="page" id="page-accueil">
+      <summary>Accueil <span class="slug">/</span></summary>
+      <div class="page-body">
+        <h4>1 — Hero</h4>
+        <p class="section-note">Structure : petit texte au-dessus du titre (eyebrow) + grand titre + paragraphe + 2 boutons + 3 badges de réassurance + à droite, un encart bleu marine avec une citation.</p>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Sélestat · Strasbourg · Colmar
+
+Faire évoluer les parcours, faire évoluer les organisations.
+
+Revelia Evolution accompagne les personnes en quête de sens grâce au bilan de compétences, et les entreprises dans la prévention du harcèlement, du burn-out, des violences sexistes et sexuelles, la médiation et la régulation des conflits.
+
+Bouton 1 : "Faire un bilan de compétences" → page Bilans de compétences
+Bouton 2 : "Former mes équipes" → page Nos formations
+
+Badges : ✓ Finançable par le CPF   ✓ Premier échange gratuit   ✓ Confidentiel & sans jugement
+
+Citation (encart) : « Je me suis sentie écoutée, jamais jugée. Je me sens plus forte à présent, capable de réaliser le projet de mes rêves. »
+— Nathalie, bilan de compétences</pre></div>
+
+        <h4>2 — Nos deux offres</h4>
+        <p class="section-note">Structure : titre de section centré + 2 cartes côte à côte, chacune avec icône, titre, texte, bouton.</p>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Nos accompagnements
+Titre : Deux façons de faire évoluer votre parcours
+Sous-titre : Que vous soyez salarié, demandeur d'emploi ou dirigeant d'entreprise, Revelia Evolution construit avec vous un accompagnement sur mesure.
+
+Carte 1 — Bilan de compétences
+Prenez du recul, révélez vos compétences et construisez un projet professionnel qui vous ressemble. Trois formules sur mesure — Essor, Élan et Éclosion — finançables via votre CPF.
+Bouton : "Découvrir les formules" → page Bilans de compétences
+
+Carte 2 — Formations en entreprise
+9 modules pour prévenir le harcèlement, les violences sexistes et sexuelles et le burn-out, écouter les victimes, réguler les conflits et construire un plan de prévention durable.
+Bouton : "Voir les 9 modules" → page Nos formations</pre></div>
+
+        <h4>3 — Partenaires</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Ils nous font confiance
+Titre : Nos partenaires
+Texte : Nous collaborons avec des structures qui partagent nos valeurs d'accompagnement, d'épanouissement et d'égalité.
+
+Logos : Mission locale Sélestat, Femmes Strasbourg (voir note dans "À vérifier")</pre></div>
+
+        <h4>4 — Témoignages</h4>
+        <p class="section-note">Grille de 6 cartes, chacune avec une citation, une initiale en avatar, un prénom et le type d'accompagnement.</p>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Témoignages
+Titre : Leur parcours, leurs mots
+Sous-titre : Ils et elles ont franchi le pas avec Revelia Evolution pour construire un projet professionnel aligné avec leurs aspirations. Aujourd'hui, ils et elles partagent leur expérience.
+
+Témoignage 1 (N — Nathalie, Bilan de compétences) :
+« Ce bilan m'a beaucoup apporté. Je ne pensais pas avoir autant de compétences en moi. Je me suis sentie écoutée, jamais jugée. Je me sens plus forte et enfin capable de réaliser le projet de mes rêves, avec des objectifs concrets. »
+
+Témoignage 2 (A — Anissa, Bilan de compétences) :
+« Un accompagnement bienveillant et structuré qui m'a vraiment aidée à clarifier mes objectifs et mon avenir professionnel. Des outils efficaces, et une équipe à l'écoute : un bilan précieux. »
+
+Témoignage 3 (H — Hélène, Bilan de compétences) :
+« J'étais un peu perdue, suite à une séparation. Grâce à ce bilan de compétences, je me suis comme « retrouvée ». J'ai pris conscience de mes forces et je me projette à nouveau dans un projet professionnel qui me plaît. »
+
+Témoignage 4 (C — Clément, Bilan de compétences) :
+« Accompagnement au top du début à la fin. Audrey est vraiment à l'écoute, ses conseils sont pertinents et m'ont aidé à mieux cerner mes aspirations. Le bilan est allé bien au-delà de mes attentes, avec un plan d'action concret et une vraie clarté sur la suite à donner à mon projet pro. »
+
+Témoignage 5 (M — Monia, Bilan de compétences) :
+« J'ai vécu un accompagnement d'une grande qualité, à la fois exigeant et profondément bienveillant. Grâce à son écoute, sa justesse et sa capacité à mettre en lumière ce qui était encore flou, j'ai gagné en clarté, en confiance et en cohérence dans mon projet professionnel. Une très belle rencontre ! »
+
+Témoignage 6 (A — Anna, Bilan de compétences) :
+« Le bilan de compétences avec Audrey de Revelia est une expérience et un espace unique d'écoute, de discussion et de réflexion où on ne se sent pas jugée, mais écoutée et valorisée. C'était très libérateur et inspirant d'être accompagnée par Audrey qui m'a aidée à me reconnecter à moi-même sur le point professionnel. »</pre></div>
+
+        <h4>5 — Bandeau d'appel à l'action (fond bleu marine)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Titre : Une question ? Un projet ? Envie d'en savoir plus ?
+Texte : Que vous souhaitiez réaliser un bilan de compétences ou mettre en place une formation au sein de votre entreprise, nous sommes à votre écoute. Ce premier échange est gratuit, confidentiel et sans engagement.
+Bouton : "Contactez-nous" → page Contact</pre></div>
+      </div>
+    </details>
+
+    <details class="page" id="page-formations">
+      <summary>Nos formations <span class="slug">/nos-formations</span></summary>
+      <div class="page-body">
+        <h4>1 — En-tête de page</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Fil d'ariane : Accueil / Nos formations
+Eyebrow : Formations en entreprise
+Titre : Donnez à vos équipes les clés pour prévenir, écouter et transformer
+Texte : Des formations concrètes et opérationnelles pour prévenir le harcèlement, le burn-out, les violences sexistes et sexuelles, accompagner les victimes, désamorcer les conflits et renforcer la coopération — et construire durablement un environnement de travail serein et respectueux.
+
+Bouton 1 : "Demander un programme sur mesure" → page Contact
+Bouton 2 : "Télécharger le catalogue (PDF)" → fichier PDF du catalogue</pre></div>
+
+        <h4>2 — Les 9 modules (grille de cartes)</h4>
+        <p class="section-note">Une carte par module : numéro, étiquette de catégorie, titre, description, puis 3 infos (durée, nombre de participants, coût). Une 10ᵉ carte "sur mesure" en fond bleu marine ferme la grille.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Module</th><th>Titre</th><th>Description</th><th>Durée</th><th>Participants</th><th>Coût</th></tr></thead>
+            <tbody>
+              <tr><td>01 · Prévention</td><td>Prévenir les violences et harcèlements sexistes et sexuels (VHSS)</td><td>Comprendre, prévenir et agir contre les VHSS, sécuriser les pratiques et transformer durablement les cultures professionnelles.</td><td>1 jour · 7h</td><td>10 à 16 pers.</td><td>1 800 € HT</td></tr>
+              <tr><td>02 · Harcèlement</td><td>Prévenir le harcèlement</td><td>Définir et repérer les différentes formes de harcèlement, savoir agir pour se protéger et installer un cadre de travail sécurisant pour toute l'équipe.</td><td>1 jour · 7h</td><td>10 à 16 pers.</td><td>1 800 € HT</td></tr>
+              <tr><td>03 · Burn-out</td><td>Prévenir et accompagner le burn-out</td><td>Identifier les facteurs de risque et les signaux d'alerte précoces du burn-out, et mettre en place des leviers d'action individuels et collectifs.</td><td>1 jour · 7h</td><td>10 à 16 pers.</td><td>1 800 € HT</td></tr>
+              <tr><td>04 · Stratégie</td><td>Construire un plan de prévention des VHSS</td><td>Concevoir une stratégie efficace de prévention, mobiliser les bons outils et garantir des actions durables et adaptées à votre organisation.</td><td>1 jour · 7h</td><td>10 à 16 pers.</td><td>1 800 € HT</td></tr>
+              <tr><td>05 · Sensibilisation</td><td>VHSS — Sensibilisation de vos équipes</td><td>Repérer les VHSS, adopter une posture de témoin actif et orienter efficacement les victimes vers les ressources existantes.</td><td>1/2 jour · 3h</td><td>10 à 16 pers.</td><td>1 000 € HT</td></tr>
+              <tr><td>06 · Représentants du personnel</td><td>VHSS — À destination des référents CSE</td><td>Pour les représentants du personnel et référents CSE : écouter, accompagner, prévenir les VHSS et agir efficacement auprès des victimes.</td><td>2 jours · 14h</td><td>10 à 16 pers.</td><td>3 200 € HT</td></tr>
+              <tr><td>07 · Écoute</td><td>Écouter et accompagner les victimes</td><td>Développer une écoute active, accompagner les victimes avec bienveillance, structurer les entretiens et orienter vers les ressources adaptées.</td><td>1 jour · 7h</td><td>10 à 16 pers.</td><td>1 800 € HT</td></tr>
+              <tr><td>08 · Conflits</td><td>Régulation des conflits</td><td>Analyser et transformer les tensions en leviers de coopération : comprendre les conflits, améliorer les relations et instaurer des espaces de dialogue sécurisés.</td><td>1 jour · 7h</td><td>10 à 16 pers.</td><td>1 800 € HT</td></tr>
+              <tr><td>09 · Médiation</td><td>Médiation et analyse de situations complexes</td><td>Transformer les tensions en recherche de solutions acceptables grâce au dialogue, à l'écoute, à l'empathie et à la médiation collective.</td><td>1 jour · 7h</td><td>10 à 16 pers.</td><td>1 800 € HT</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="copy-block"><span class="tag">Copier — carte 10 (sur mesure)</span><pre>Étiquette : Sur mesure
+Titre : Un programme pensé pour vous
+Texte : Chaque parcours est co-construit selon votre secteur, la taille de vos équipes et vos objectifs. Parlons de votre contexte.
+Bouton : "Échanger avec nous" → page Contact</pre></div>
+
+        <h4>3 — Bandeau catalogue (fond alterné)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Titre : Découvrez le détail de toutes nos formations
+Texte : Objectifs, bénéfices, public visé, durée et coût de chaque module, ainsi que le cadre légal de la prévention des VHSS en entreprise : tout est réuni dans notre catalogue complet, à télécharger librement.
+Bouton 1 : "Télécharger le catalogue (PDF)" → fichier PDF
+Bouton 2 : "Demander un devis sur mesure" → page Contact</pre></div>
+      </div>
+    </details>
+
+    <details class="page" id="page-bilans">
+      <summary>Bilans de compétences <span class="slug">/nos-bilans-de-competences</span></summary>
+      <div class="page-body">
+        <h4>1 — En-tête de page</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Fil d'ariane : Accueil / Bilans de compétences
+Eyebrow : Bilan de compétences
+Titre : Offrez-vous un temps pour faire le point et construire un projet qui vous ressemble
+Texte : Trois formules de bilan de compétences, adaptées à votre situation, accessibles aux salariés, fonctionnaires et demandeurs d'emploi, avec une prise en charge possible via le CPF selon votre éligibilité.
+
+Bouton 1 : "Réserver mon premier échange" → page Contact
+Bouton 2 : "Voir le financement" → page Coût & financement</pre></div>
+
+        <h4>2 — Pourquoi faire un bilan (texte centré, sans image)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Pourquoi faire un bilan ?
+Titre : Et si c'était le bon moment pour faire le point ?
+Texte : Lorsque l'envie de changement se fait sentir, le bilan de compétences offre un espace pour mieux se connaître, clarifier ses aspirations et construire un projet professionnel aligné avec ses envies et ses valeurs.</pre></div>
+
+        <h4>3 — Les 3 phases (3 cartes numérotées 1-2-3)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : La méthode
+Titre : Le bilan de compétences en 3 phases
+Sous-titre : Un véritable parcours de réflexion et d'action, structuré pour vous aider à mieux vous connaître et construire un projet réaliste, motivant et durable. Il est à noter qu'aucun prérequis n'est nécessaire pour réaliser un bilan de compétences.
+
+1 — Phase préliminaire
+Confirmer votre engagement, analyser votre demande et vos besoins, et définir ensemble les modalités du déroulement de votre bilan.
+
+2 — Phase d'investigation
+Explorer vos compétences, motivations, aptitudes et valeurs, pour construire un ou plusieurs projets professionnels réalistes.
+
+3 — Phase de conclusion
+Faire la synthèse du travail réalisé, formaliser votre projet et bâtir un plan d'action concret pour le mettre en œuvre.</pre></div>
+
+        <h4>4 — Nos formules (3 cartes tarifaires, la 2ᵉ mise en avant)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Nos formules
+Titre : Choisissez le bilan qui vous correspond
+Sous-titre : Nos trois formules reposent sur une même exigence : une écoute attentive, un accompagnement personnalisé et des outils concrets. Essor et Élan se distinguent par le rythme et le niveau d'approfondissement du parcours ; Éclosion propose une approche plus créative et intuitive, pour explorer votre projet autrement.
+
+CARTE 1 — Bilan Essor
+13 heures d'accompagnement · 2 à 3 mois · 1 600 €
+Un accompagnement efficace pour prendre de la hauteur et clarifier son projet professionnel.
+✓ Entretiens individuels en présentiel ou en visio
+✓ Exercices d'exploration des compétences
+✓ Construction d'un projet professionnel réaliste
+✓ Synthèse écrite et confidentielle
+Bouton : "Choisir Essor" → page Contact
+
+CARTE 2 — Bilan Élan (étiquette : "Le plus demandé")
+16 heures d'accompagnement · 2 à 3 mois · 2 190 €
+Un accompagnement plus approfondi pour engager un changement durable, avec davantage de temps d'exploration.
+✓ Tout le contenu du bilan Essor
+✓ Temps d'exploration approfondi
+✓ Outils complémentaires de positionnement
+✓ Plan d'action détaillé et suivi renforcé
+Bouton : "Choisir Élan" → page Contact
+
+CARTE 3 — Bilan Éclosion
+19 heures d'accompagnement · 2 à 3 mois · 2 650 €
+Une approche sensible et créative pour révéler le projet professionnel qui vous ressemble vraiment, au-delà de l'analyse classique.
+✓ Tout le contenu du bilan Essor et du bilan Élan
+✓ Outils créatifs : Vision Board, visualisation, collages
+✓ Exploration des valeurs, des moteurs et des talents
+✓ Vision Board à conserver
+Bouton : "Choisir Éclosion" → page Contact
+
+Note sous la grille : Les personnes en situation de handicap sont invitées à nous contacter afin d'étudier les modalités d'adaptation de l'accompagnement.</pre></div>
+
+        <h4>5 — Bandeau financement</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Titre : Financement de votre bilan
+Texte : Le financement ne doit pas être un frein à votre évolution professionnelle. CPF, financement employeur, OPCO ou France Travail : découvrez toutes les solutions selon votre situation.
+Bouton : "Voir le financement" → page Coût & financement</pre></div>
+      </div>
+    </details>
+
+    <details class="page" id="page-financement">
+      <summary>Coût &amp; financement <span class="slug">/cout-et-financement</span></summary>
+      <div class="page-body">
+        <h4>1 — En-tête de page</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Fil d'ariane : Accueil / Bilans de compétences / Coût & financement
+Eyebrow : Financement
+Titre : Le coût ne doit jamais être un frein à votre évolution
+Texte : Plusieurs solutions existent selon votre situation pour réaliser votre bilan de compétences dans les meilleures conditions, avec ou sans reste à charge.</pre></div>
+
+        <h4>2 — Le décret 2026 (3 cartes numérotées)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : À savoir
+Titre : Ce qui change avec le décret n°2026-127
+Sous-titre : Entré en vigueur le 26 février 2026 dans le cadre de la loi de finances, ce décret encadre différemment la mobilisation du CPF pour les bilans de compétences.
+
+1 — Plafond de 1 600 €
+Quelle que soit la somme disponible sur votre CPF, le montant maximum mobilisable pour un bilan de compétences est désormais plafonné à 1 600 €.
+
+2 — Un délai de 5 ans
+Vous ne devez pas avoir bénéficié d'un financement de bilan de compétences (CPF, État, Région, France Travail, Opco…) au cours des cinq années précédant votre demande.
+
+3 — Des formules accessibles
+Chez Revelia Evolution, nos formules sont accessibles dès 1 600 €, et nous vous accompagnons pas à pas dans vos démarches CPF.</pre></div>
+
+        <h4>3 — Reste à charge (2 cartes côte à côte)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Reste à charge
+Titre : Une participation de 150 €, sous conditions
+Sous-titre : Depuis la réforme du CPF, une participation financière obligatoire de 150 € s'applique. Vous pouvez toutefois en être exonérée dans plusieurs situations.
+
+CARTE 1 — Vous pouvez être exonérée si…
+– Vous êtes demandeuse d'emploi inscrite à France Travail
+– Vous bénéficiez d'un abondement de votre employeur
+– Un OPCO, un accord de branche ou de groupe finance votre parcours
+– Vous mobilisez votre Compte professionnel de prévention (C2P)
+– Vous bénéficiez d'un abondement lié à une incapacité permanente ≥ 10 % (AT/MP)
+
+CARTE 2 — Réduire ou éviter le reste à charge
+– Demander à votre employeur de financer tout ou partie du bilan
+– Solliciter un financement public (Région, France Travail…)
+– Contacter votre Opérateur de Compétences (OPCO) selon votre secteur
+Note : Le règlement du reste à charge s'effectue en une fois sur la plateforme Mon Compte Formation, par carte bancaire ou virement.</pre></div>
+
+        <h4>4 — Rémunération pendant le bilan (4 petites cartes)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Pendant votre bilan
+Titre : Rémunération et accord de l'employeur
+
+Sur votre temps de travail — Possible avec l'accord préalable de votre employeur. Votre rémunération est maintenue pendant le bilan.
+Hors temps de travail — Aucune information à donner à votre employeur. Pas de rémunération spécifique dans ce cas.
+Refus sans risque — Si votre employeur vous propose un bilan, votre accord est obligatoire. Un refus n'est ni une faute, ni un motif de licenciement.
+Confidentialité garantie — Même financé par votre employeur, les résultats de votre bilan restent strictement confidentiels et ne lui sont jamais transmis sans votre accord.</pre></div>
+
+        <h4>5 — Bandeau final</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Titre : Zéro stress avec vos démarches CPF
+Texte : Nous vous accompagnons pas à pas jusqu'à la mobilisation de votre CPF sur www.moncompteformation.gouv.fr.
+Bouton : "Se faire accompagner" → page Contact</pre></div>
+      </div>
+    </details>
+
+    <details class="page" id="page-apropos">
+      <summary>À propos <span class="slug">/a-propos</span></summary>
+      <div class="page-body">
+        <h4>1 — En-tête de page</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Fil d'ariane : Accueil / À propos
+Eyebrow : À propos de Revelia Evolution
+Titre : Faire évoluer les parcours, faire évoluer les organisations
+Texte : Chez Revelia Evolution, nous sommes convaincus qu'une évolution durable commence toujours par l'humain. Qu'il s'agisse d'accompagner une personne dans son parcours professionnel ou d'aider une entreprise à développer une culture de travail plus respectueuse, notre engagement reste le même : écouter, comprendre et construire des solutions adaptées à chaque situation.</pre></div>
+
+        <h4>2 — Deux publics (2 cartes)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>CARTE 1 — Auprès des particuliers
+Nous accompagnons les particuliers à travers le bilan de compétences, pour leur permettre de prendre du recul, retrouver du sens et bâtir un projet professionnel qui leur ressemble.
+
+CARTE 2 — Auprès des entreprises
+Nous intervenons avec des actions de formation en matière de prévention du harcèlement, du burn-out et des violences sexistes et sexuelles, ainsi que des interventions de régulation de conflits et d'analyse de situations complexes.</pre></div>
+
+        <h4>3 — Nos valeurs (4 cartes)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Nos valeurs
+Titre : Ce qui guide chacun de nos accompagnements
+
+L'écoute — Chaque personne, chaque équipe et chaque organisation possède son histoire, ses enjeux et ses besoins. Nous prenons le temps de comprendre la réalité de chacun et chacune avant de proposer un accompagnement.
+
+Le respect — Nous croyons à des relations fondées sur la confiance, la confidentialité et le respect des parcours de chacun et chacune. La parole peut s'exprimer librement, sans jugement.
+
+Transmission — Nous partageons des repères, des méthodes et des outils concrets pour permettre à chacun et chacune de poursuivre son chemin avec clarté et autonomie.
+
+L'engagement — Nous nous impliquons pleinement dans chaque mission, avec la volonté de contribuer à des parcours professionnels plus épanouis et à des organisations où chacun et chacune trouve sa place.</pre></div>
+
+        <h4>4 — Approche à taille humaine (texte + citation)</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Eyebrow : Notre approche
+Titre : Une approche à taille humaine
+Texte : Chez Revelia Evolution, nous privilégions les échanges authentiques et les accompagnements personnalisés. Derrière chaque projet, il y a une personne, une équipe, une histoire. C'est cette dimension humaine qui donne du sens à notre métier et qui inspire chacune de nos interventions.
+Bouton : "Parlons de votre projet" → page Contact
+
+Citation (encart) : « Un accompagnement bienveillant et structuré qui m'a vraiment aidée à clarifier mes objectifs et mon avenir professionnel. »
+— Anissa, bilan de compétences</pre></div>
+      </div>
+    </details>
+
+    <details class="page" id="page-faq">
+      <summary>FAQ <span class="slug">/faq</span></summary>
+      <div class="page-body">
+        <h4>1 — En-tête de page</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Fil d'ariane : Accueil / FAQ
+Eyebrow : Foire aux questions
+Titre : Vous vous posez des questions sur le bilan de compétences ?
+Texte : Nous avons réuni les questions les plus fréquentes pour vous apporter des réponses claires. Cliquez sur une question pour dérouler la réponse.</pre></div>
+
+        <h4>2 — Groupe : Choisir &amp; comprendre le bilan</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Q. Comment choisir mon organisme de bilan de compétences ?
+R. La meilleure façon de choisir est de prêter attention à vos besoins. Posez-vous quelques questions : le bilan proposé se déroule-t-il en présentiel, en 100 % visio, ou en format mixte selon vos besoins ? L'organisme propose-t-il un rythme adapté au vôtre ? Ses valeurs vous correspondent-elles ?
+
+Q. Combien dure un bilan de compétences ?
+R. Chez Revelia Evolution, le bilan se réalise en général en 2 à 3 mois, selon vos disponibilités. Nous proposons trois formules au choix : Essor (13h), Élan (16h) ou Éclosion (19h). Détails complets sur la page Coût & financement.
+
+Q. Je suis en poste, puis-je faire un bilan de compétences ?
+R. Oui, tout à fait. Vous pouvez le réaliser sur votre temps de travail, avec l'accord préalable de votre employeur. Si vous préférez le faire en dehors de votre temps de travail, votre employeur n'a pas à être informé.</pre></div>
+
+        <h4>3 — Groupe : Financement &amp; CPF</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Q. Un nouveau décret est paru en février 2026 : qu'est-ce que ça change pour moi ?
+R. Le décret n°2026-127, entré en vigueur le 26 février 2026, plafonne à 1 600 € le montant CPF mobilisable pour un bilan de compétences, et impose de ne pas avoir bénéficié d'un tel financement au cours des 5 années précédentes. Chez Revelia Evolution, nos formules restent accessibles dès 1 600 €, et nous vous accompagnons dans vos démarches CPF.
+
+Q. Mon employeur peut-il financer mon bilan de compétences ?
+R. Oui, il peut le financer totalement ou en complément de votre CPF, notamment dans le cadre d'un plan de développement des compétences ou d'un congé de reclassement.
+
+Q. Mon employeur peut-il m'imposer un bilan de compétences ?
+R. Non. Votre accord est obligatoire. Un refus n'est ni une faute, ni un motif de licenciement. Votre employeur peut néanmoins vous proposer un bilan dans le cadre d'un plan de développement des compétences ou d'un congé de reclassement.
+
+Q. Si mon employeur finance mon bilan, qui choisit l'organisme ?
+R. C'est vous qui choisissez votre organisme. En aucun cas l'employeur ne peut réaliser lui-même les bilans de compétences de ses salariés.
+
+Q. Dois-je communiquer les résultats de mon bilan à mon employeur ?
+R. Non, absolument pas. La synthèse et les résultats de votre bilan sont protégés par la confidentialité. Vous n'avez aucune obligation de les transmettre, même si votre employeur finance le bilan.
+
+Q. Combien coûte un bilan de compétences ?
+R. Tous les détails sur le coût de nos formules sont expliqués sur la page Coût & financement.
+
+Q. Comment connaître le montant disponible sur mon CPF ?
+R. Il suffit de vous rendre sur www.moncompteformation.gouv.fr. Et si vous avez besoin d'aide, Revelia Evolution peut vous accompagner pas à pas dans vos démarches.
+
+Q. Y a-t-il un reste à charge avec le CPF ?
+R. Oui, une participation obligatoire de 150 € existe. Vous pouvez toutefois en être exonérée sous certaines conditions : voir le détail sur la page Coût & financement.
+
+Q. Peut-on payer le reste à charge en plusieurs fois ?
+R. Non. Il se règle en une fois directement sur la plateforme Mon Compte Formation, par carte bancaire ou par virement bancaire (le virement engendre un délai de traitement supplémentaire).
+
+Q. Suis-je rémunérée pendant mon bilan de compétences ?
+R. Cela dépend de votre situation : si vous réalisez le bilan sur votre temps de travail, votre rémunération est maintenue. Si vous le faites en dehors de votre temps de travail, il n'y a pas de rémunération spécifique.</pre></div>
+
+        <h4>4 — Groupe : Encore des questions ?</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Q. J'ai encore des questions, comment faire ?
+R. C'est très simple ! Il suffit de nous contacter par téléphone ou par email. Ce premier échange est gratuit, confidentiel et sans engagement — l'objectif est de vous écouter, comprendre vos besoins et répondre à toutes vos questions.</pre></div>
+
+        <h4>5 — Bandeau final</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Titre : C'est décidé, je me lance ?
+Texte : Prenez contact par téléphone ou par mail. Cet appel est totalement gratuit et sans engagement.
+Bouton : "Contactez-nous" → page Contact</pre></div>
+      </div>
+    </details>
+
+    <details class="page" id="page-contact">
+      <summary>Contact <span class="slug">/contact</span></summary>
+      <div class="page-body">
+        <h4>1 — En-tête de page</h4>
+        <div class="copy-block"><span class="tag">Copier</span><pre>Fil d'ariane : Accueil / Contact
+Eyebrow : Échangeons sur vos besoins
+Titre : Une question ? Un projet ? Envie d'en savoir plus ?
+Texte : Que vous souhaitiez réaliser un bilan de compétences ou mettre en place une formation au sein de votre entreprise, nous sommes à votre écoute. Ce premier échange est gratuit, confidentiel et sans engagement.</pre></div>
+
+        <h4>2 — Mise en page : 2 colonnes</h4>
+        <p class="section-note">Colonne gauche (fond bleu marine) : coordonnées. Colonne droite : formulaire de contact.</p>
+        <div class="copy-block"><span class="tag">Copier — colonne coordonnées</span><pre>Eyebrow : Nos coordonnées
+Titre : Parlons-en directement
+Texte : Lors d'un premier échange, nous répondons à toutes vos questions et vous aidons à choisir l'accompagnement le plus adapté à votre situation.
+
+Téléphone : 06 10 28 45 26
+Email : contact@revelia-evolution.fr
+Zone d'intervention : Sélestat – Strasbourg – Colmar
+Réponse : Sous 24 à 48h ouvrées</pre></div>
+        <div class="copy-block"><span class="tag">Copier — formulaire</span><pre>Titre : Écrivez-nous un message
+Champs : Votre nom / Votre adresse mail / Je souhaite (menu déroulant : Réaliser un bilan de compétences / Mettre en place une formation en entreprise / Autre demande) / Votre message
+Bouton : "Envoyer le message"
+Note sous le bouton : En envoyant ce formulaire, vous acceptez d'être recontactée par Revelia Evolution au sujet de votre demande.</pre></div>
+        <div class="callout">
+          <strong>Bonne nouvelle</strong> — dans WordPress, inutile de recoder un formulaire : utilisez le formulaire natif de Kubio, ou un plugin comme WPForms/Contact Form 7, réglé pour envoyer les messages à contact@revelia-evolution.fr. C'est plus simple que la solution technique (Web3Forms) utilisée sur la version HTML de démonstration.
+        </div>
+      </div>
+    </details>
+
+    <details class="page" id="page-mentions">
+      <summary>Mentions légales <span class="slug">/mentions-legales</span></summary>
+      <div class="page-body">
+        <h4>Contenu</h4>
+        <p class="section-note">Page simple, texte seul (pas de mise en page particulière) — titres H2/H3 séparant les sections ci-dessous. Toutes les informations sont déjà complètes, rien à renseigner.</p>
+        <div class="copy-block"><span class="tag">Copier — Éditeur du site</span><pre>Revelia Evolution
+Forme juridique : Société Didaxis Formation SAS
+SIRET : 792 779 456 00047
+Adresse du siège : 99 boulevard de la Reine – 78000 Versailles (France)
+Téléphone : 06 10 28 45 26
+Email : contact@revelia-evolution.fr
+Directrice de la publication : Audrey Nobis</pre></div>
+
+        <div class="copy-block"><span class="tag">Copier — Hébergement</span><pre>Nom de l'hébergeur : OVH SAS
+Adresse de l'hébergeur : 2 rue Kellermann – 59100 Roubaix (France)</pre></div>
+
+        <div class="copy-block"><span class="tag">Copier — Propriété intellectuelle</span><pre>L'ensemble des contenus présents sur ce site (textes, images, logo, mise en page) est la propriété de Revelia Evolution, sauf mention contraire. Toute reproduction, même partielle, est soumise à autorisation préalable.</pre></div>
+
+        <div class="copy-block"><span class="tag">Copier — Responsabilité</span><pre>Les informations diffusées sur ce site sont fournies à titre indicatif. Malgré le soin apporté à leur rédaction, elles peuvent être modifiées à tout moment.
+L'éditeur ne saurait être tenu responsable des dommages directs ou indirects résultant de l'utilisation du site.</pre></div>
+
+        <div class="copy-block"><span class="tag">Copier — Les modalités de réclamation</span><pre>Toute réclamation peut être adressée à contact@revelia-evolution.fr. Une réponse sera apportée dans les meilleurs délais.</pre></div>
+
+        <div class="copy-block"><span class="tag">Copier — Médiation de la consommation</span><pre>Conformément à l'article L.616-1 du Code de la consommation, tout consommateur a le droit de recourir gratuitement à un médiateur de la consommation. Notre société a adhéré à SAS MEDIATION Solution Consommation, sous le numéro 19254/VM/2608/49, n° de SIRET 83286956400019.</pre></div>
+
+        <div class="copy-block"><span class="tag">Copier — Politique de confidentialité</span><pre>Données collectées
+Les données personnelles sont collectées uniquement lorsque vous remplissez le formulaire de contact.
+Les données susceptibles d'être collectées sont : nom ; prénom ; adresse e-mail ; téléphone (si renseigné) ; contenu du message.
+
+Finalité du traitement
+Ces données sont utilisées uniquement afin de : répondre à votre demande ; échanger avec vous dans le cadre de votre projet de formation ou de bilan de compétences.
+Aucune donnée n'est vendue ni cédée à des tiers à des fins commerciales.
+
+Base légale
+Le traitement repose sur : votre consentement lorsque vous utilisez le formulaire de contact ; ou l'exécution de mesures précontractuelles lorsque vous sollicitez un devis ou un accompagnement.
+
+Destinataires des données
+Les données sont accessibles uniquement par Revelia Evolution.
+Afin de protéger le site contre les messages indésirables, les informations transmises via le formulaire peuvent être analysées par le service Akismet, édité par Automattic.
+
+Durée de conservation
+Les données sont conservées uniquement pendant la durée nécessaire au traitement de votre demande et au respect des obligations légales.
+
+Vos droits
+Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants : droit d'accès ; droit de rectification ; droit d'effacement ; droit à la limitation du traitement ; droit d'opposition ; droit à la portabilité lorsque celui-ci est applicable.
+Pour exercer ces droits : contact@revelia-evolution.fr
+Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la CNIL.
+
+Formulaire de contact
+Les informations recueillies via le formulaire de contact sont enregistrées uniquement afin de répondre à votre demande.
+Les champs précédés d'un astérisque sont obligatoires. À défaut, votre demande ne pourra pas être traitée.</pre></div>
+
+        <div class="copy-block"><span class="tag">Copier — Cookies</span><pre>Le site utilise uniquement les cookies strictement nécessaires à son fonctionnement.
+À ce jour, aucun cookie de mesure d'audience ou de publicité n'est déposé sans votre consentement.
+Vous pouvez configurer votre navigateur afin de gérer ou supprimer les cookies techniques. Leur désactivation peut toutefois altérer certaines fonctionnalités du site.</pre></div>
+        <p class="section-note">Ordre des sections sur la page : Éditeur du site → Hébergement → Propriété intellectuelle → Responsabilité → Les modalités de réclamation → Médiation de la consommation → Politique de confidentialité (avec ses sous-parties) → Cookies.</p>
+      </div>
+    </details>
+
+    <hr class="sep">
+
+    <section class="block" id="attention">
+      <h2>À vérifier avant mise en ligne</h2>
+      <ul>
+        <li><strong>Clé Web3Forms</strong> — si vous gardez le formulaire HTML tel quel plutôt qu'un plugin WordPress, remplacez <code>VOTRE_CLE_WEB3FORMS_ICI</code> par une vraie clé (gratuite sur <a href="https://web3forms.com" target="_blank" rel="noopener">web3forms.com</a>) dans <code>contact.html</code> avant de le coller — sinon le formulaire ne partira pas.</li>
+        <li><strong>Logos partenaires</strong> — re-téléverser les images de Mission locale Sélestat et Femmes Strasbourg dans la médiathèque WordPress (voir <a href="#logo">Logo &amp; images</a>).</li>
+        <li><strong>Catalogue PDF</strong> — re-téléverser <code>revelia-evolution-catalogue-formations-vhss.pdf</code> (19 pages) et relier le bouton de téléchargement sur la page Formations.</li>
+        <li><strong>Formulaire de contact</strong> — configurer un plugin de formulaire (ou le formulaire natif de Kubio) pour envoyer les messages vers contact@revelia-evolution.fr, si vous n'utilisez pas Web3Forms.</li>
+        <li><strong>Permaliens</strong> — vérifier qu'ils sont réglés sur "Titre de la publication" (Réglages → Permaliens).</li>
+      </ul>
+    </section>
+  </main>
+</div>
